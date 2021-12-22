@@ -1,0 +1,74 @@
+# 엔티티 매핑
+JPA는 다양한 매핑 어노테이션을 지원하는데 크게 4가지로 구분할 수 있다.
+
+* 객체와 테이블 매핑 : @Entity, @Table
+* 기본 키 매핑 : @Id
+* 필드와 컬럼 매핑 : @Column
+* 연관관계 매핑 : @ManyToOne, @JoinColumn
+
+## 4.1 @Entity
+JPA를 사용해서 테이블과 매핑할 클래스는 @Entity를 필수로 붙여야한다. 주의사항으로는 기본 생성자는 필수고, final 클래스, enum, interface, inner 클래스에는 사용할 수 없다. 또 저장할 필드에 final을 사용하면 안 된다.
+
+JPA가 엔티티 객체를 생성할 때 기본 생성자를 사용하므로 이 생성자는 반드시 있어야 한다.
+
+## 4.2 @Table
+엔티티와 매핑할 테이블을 지정하는 어노테이션이다. 생략시 매핑한 엔티티 이름을 테이블 이름으로 사용한다.
+
+## 4.3 다양한 매핑 사용
+    @Entity
+    @Table
+    public class Member {
+
+        @Id
+        @Column(name="ID")
+        private String id;
+
+        @Column(name="NAME")
+        private String userName;
+
+        private Integer age;
+
+        @Enumerated(EnumType.STRING)        //자바의 enum 사용시 어노테이션으로 매핑 필요
+        private RoleType roleType;
+
+        @Temporal(TemporalType.TIMESTAMP)   //날짜 타입은 @Temporal 사용
+        private Date createDate;
+
+        @Temporal(TemporalType.TIMESTAMP)
+        private Date lastModifiedDate;
+
+        @Lob                                //길이 제한이 없는 CLOB 타입으로 설정 @Lob는 CLOB(대형 문자객체), BLOB(대형 이진객체) 타입을 매핑할 수 있다.
+        private String description;
+
+        //Getter, Setter...
+    }
+
+    public enum RoleType {
+        ADMIN, USER
+    }
+
+## 4.4 데이터베이스 스키마 자동 생성
+JPA는 데이터베이스 스키마를 자동으로 생성하는 기능을 지원한다. 
+
+    //persistence.xml에 속성 추가 : 애플리케이션 실행 시점에 데이터베이스 테이블을 자동으로 생성
+    <property name="hibernate.hbm2ddl.auto" value="create"/>
+
+* create : 기존 테이블을 삭제하고 새로 생성 (DROP + CREATE)
+* create-auto : 애플리케이션 종료시 생성한 DDL 제거 (DROP + CREATE + DROP)
+* update : 테이블과 엔티티 매핑정보를 비교해서 변경 사항만 수정
+* vaildate : 테이블과 엔티티 매핑정보를 비교해서 차이가 있으면 경고를 남기고 애플리케이션 실행 X
+* none : 자동 생성 기능X
+
+**운영에서는 create, create-auto, update 처럼 DDL을 수정하는 옵션은 절대 사용해서는 안 된다.
+
+## 4.5 DDL 생성 기능
+@Column(name="NAME", nullable=false, length=10) 이런식으로 제약조건을 추가할 수 있다. nullable 속성이 false이면 not null제약조건을 걸 수 있고, length 속성을 지정시 문자의 크기를 지정할 수 있다.
+
+@Table(name="MEMBER", uniqueConstraints={@UniqueConstraint(name="NAME_AGE_UNIQUE", columnNames={"NAME", "AGE"})}) 유니크 제약조건 설정 방법이다.
+
+위의 기능들은 DDL을 자동 생성할 때만 사용되고 JPA의 실행 로직에는 영향을 주지 않는다.
+
+ 
+
+맨위로
+
